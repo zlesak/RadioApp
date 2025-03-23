@@ -9,6 +9,7 @@ import cz.uhk.fim.zlesak.radioapp.data.MyObjectBox
 import cz.uhk.fim.zlesak.radioapp.data.RadioStationFavoriteEntity
 import cz.uhk.fim.zlesak.radioapp.repository.RadioFavoriteRepository
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
+import cz.uhk.fim.zlesak.radioapp.viewModels.RadioSearchViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioViewModel
 import io.objectbox.BoxStore
 import okhttp3.Interceptor
@@ -26,6 +27,7 @@ val repositoryModule = module {
 val viewModelModule = module {
     viewModel { RadioFavoriteViewModel(get(), get()) }
     viewModel { RadioViewModel(get()) }
+    viewModel { RadioSearchViewModel() }
 }
 
 val networkModule = module {
@@ -68,7 +70,7 @@ fun provideOkHttpClient(): OkHttpClient {
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-        .baseUrl("http://at1.api.radio-browser.info/json/")
+        .baseUrl("http://de2.api.radio-browser.info/json/")
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

@@ -1,5 +1,6 @@
 package cz.uhk.fim.zlesak.radioapp.viewModels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
@@ -15,6 +16,10 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
     val radio : StateFlow<ApiResult<List<RadioStation>>> = _radio.asStateFlow()
     private val _radioList = MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
     val radioList : StateFlow<ApiResult<List<RadioStation>>> = _radioList.asStateFlow()
+    private val _gpsRadioList = MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
+    val gpsRadioList : StateFlow<ApiResult<List<RadioStation>>> = _gpsRadioList.asStateFlow()
+    private val _searchedRadioList = MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
+    val searchedRadioList : StateFlow<ApiResult<List<RadioStation>>> = _searchedRadioList.asStateFlow()
 
     fun getRadioByUuid(uuid : String){
         viewModelScope.launch {
@@ -62,5 +67,79 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
         }
     }
 
+    fun getSearchedRadioStations(offset: Int = 0, limit: Int = 15, name : String, country :String = "", language :String = "", tagList :String = "" ){
+        viewModelScope.launch {
+            _searchedRadioList.value = ApiResult.Loading
+            try {
+                val response = radioApi.getSearchedRadioStations(offset, limit, name, country, language, tagList)
+                if(response.isSuccessful){
+                    val data : List<RadioStation>? = response.body()
 
+                    if(data != null){
+                        _searchedRadioList.value = ApiResult.Success(data)
+                    }else{
+                        _searchedRadioList.value = ApiResult.Error("Data null")
+                    }
+                }else{
+                    _searchedRadioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
+                }
+            }
+            catch (e : Exception){
+                _searchedRadioList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
+            }
+        }
+    }
+
+    fun getTopClickRadioStations(offset: Int = 0, limit: Int = 15){
+        viewModelScope.launch {
+            _radioList.value = ApiResult.Loading
+            try {
+                val response = radioApi.getTopClickRadioStations(offset, limit)
+                if(response.isSuccessful){
+                    val data : List<RadioStation>? = response.body()
+
+                    if(data != null){
+                        _radioList.value = ApiResult.Success(data)
+                    }else{
+                        _radioList.value = ApiResult.Error("Data null")
+                    }
+                }else{
+                    _radioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
+                }
+            }
+            catch (e : Exception){
+                _radioList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
+            }
+        }
+    }
+
+    fun getRadioStationsFromLocation(offset: Int = 0, limit: Int = 15, lat : Double, long : Double, distance : Number = 10000){
+        viewModelScope.launch {
+            _gpsRadioList.value = ApiResult.Loading
+            try {
+                val response = radioApi.getRadioStationsFromLocation(offset, limit, lat, long, distance)
+                if(response.isSuccessful){
+                    val data : List<RadioStation>? = response.body()
+
+                    if(data != null){
+                        _gpsRadioList.value = ApiResult.Success(data)
+                        Log.d("RadioViewModel", "Data for getRadioStationsFromLocation fetched successfully")
+                    }else{
+                        _gpsRadioList.value = ApiResult.Error("Data null")
+                    }
+                }else{
+                    _gpsRadioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
+                }
+            }
+            catch (e : Exception){
+                _gpsRadioList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
+            }
+        }
+    }
+    fun clearSearchedRadioList(){
+        viewModelScope.launch {
+            _searchedRadioList.value = ApiResult.Loading
+            Log.d("RadioViewModel", "Cleared searched radio data")
+        }
+    }
 }

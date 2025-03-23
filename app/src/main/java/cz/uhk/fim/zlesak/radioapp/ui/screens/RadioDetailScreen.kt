@@ -1,4 +1,4 @@
-package cz.uhk.fim.zlesak.radioapp.ui.detail
+package cz.uhk.fim.zlesak.radioapp.ui.screens
 
 import android.util.Log
 import androidx.annotation.OptIn

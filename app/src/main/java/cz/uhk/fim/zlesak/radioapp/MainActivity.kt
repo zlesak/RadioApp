@@ -1,9 +1,14 @@
 package cz.uhk.fim.zlesak.radioapp
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -20,18 +25,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cz.uhk.fim.zlesak.radioapp.router.Routes
-import cz.uhk.fim.zlesak.radioapp.ui.detail.RadioDetailScreen
-import cz.uhk.fim.zlesak.radioapp.ui.favorite.RadioFavoriteScreen
-import cz.uhk.fim.zlesak.radioapp.ui.history.RadioHistoryScreen
-import cz.uhk.fim.zlesak.radioapp.ui.home.RadioHomeScreen
+import cz.uhk.fim.zlesak.radioapp.ui.screens.RadioDetailScreen
+import cz.uhk.fim.zlesak.radioapp.ui.screens.RadioFavoriteScreen
+import cz.uhk.fim.zlesak.radioapp.ui.screens.RadioHistoryScreen
+import cz.uhk.fim.zlesak.radioapp.ui.screens.RadioHomeScreen
 import cz.uhk.fim.zlesak.radioapp.ui.navigation.BottomNavItem
-import cz.uhk.fim.zlesak.radioapp.ui.search.RadioSearchScreen
+import cz.uhk.fim.zlesak.radioapp.ui.screens.RadioSearchScreen
 import cz.uhk.fim.zlesak.radioapp.ui.theme.RadioAppTheme
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
@@ -40,7 +46,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        startKoin{
+        startKoin {
             androidContext(this@MainActivity)
             modules(repositoryModule, viewModelModule, networkModule, objectBoxModule, imageModule)
         }
@@ -49,6 +55,29 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 MainScreen(navController)
             }
+        }
+        requestPositionPermission()
+    }
+
+    private fun requestPositionPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Location permission not granted", Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -81,7 +110,7 @@ fun MainScreen(navController: NavHostController) {
                             selectedItem = index
                             navController.navigate(item.screenRoute) {
                                 navController.graph.startDestinationRoute?.let { screenRoute ->
-                                    popUpTo(screenRoute){
+                                    popUpTo(screenRoute) {
                                         saveState = true
                                     }
                                 }
@@ -115,22 +144,14 @@ fun Navigation(navController: NavHostController, innerPadding: PaddingValues) {
         modifier = Modifier.padding(innerPadding)
     ) {
         composable(Routes.RadioHome) { RadioHomeScreen(navController) }
-        composable(Routes.RadioSearch) { RadioSearchScreen(navController) }
-        composable(Routes.RadioDetail) {
-                navBackStackEntry -> val radioUuid  = navBackStackEntry.arguments?.getString("uuid")
-            if(radioUuid != null){
+        composable(Routes.RadioSearch) { RadioSearchScreen(navController, context = LocalContext.current) }
+        composable(Routes.RadioDetail) { navBackStackEntry ->
+            val radioUuid = navBackStackEntry.arguments?.getString("uuid")
+            if (radioUuid != null) {
                 RadioDetailScreen(navController, radioUuid)
             }
         }
-        composable(Routes.RadioFavorites){ RadioFavoriteScreen(navController) }
+        composable(Routes.RadioFavorites) { RadioFavoriteScreen(navController) }
         composable(Routes.RadioHistory) { RadioHistoryScreen(navController) }
     }
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun MainScreenPreview() {
-//    RadioAppTheme {
-//        MainScreen(rememberNavController())
-//    }
-//}

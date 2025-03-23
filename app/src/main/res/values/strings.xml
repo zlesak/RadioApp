@@ -10,4 +10,8 @@
     <string name="play_button_description">Play button icon</string>
     <string name="go_back">Go back</string>
     <string name="radio_icon">Radio icon for missing radio favicon</string>
+    <string name="search_icon">Search icon</string>
+    <string name="search">Search</string>
+    <string name="search_text">Search for radio stations</string>
+    <string name="radio_search_radius_info">Radio stations close to you</string>
 </resources>

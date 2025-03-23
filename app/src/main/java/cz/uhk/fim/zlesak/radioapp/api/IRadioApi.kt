@@ -10,11 +10,27 @@ interface IRadioApi {
     suspend fun getAllRadioStations(@Query("offset") offset : Number ,@Query("limit") limit : Number) : Response<List<RadioStation>>
 
     @GET("stations/search") //TODO BASED ON WHAT ALL WANTS TO BE IMPLEMENTED
-    suspend fun getSearchedRadioStations() : Response<List<RadioStation>>
+    suspend fun getSearchedRadioStations(
+        @Query("offset") offset : Int,
+        @Query("limit") limit : Int,
+        @Query("name") name: String?,
+        @Query("country") country : String?,
+        @Query("language") language: String?,
+        @Query("tagList") tagList: String?
+    ) : Response<List<RadioStation>>
 
-    @GET("stations/topvote")
-    suspend fun getTopRadioStations(@Query("limit") limit : Number) : Response<List<RadioStation>>
+    @GET("stations/topclick")
+    suspend fun getTopClickRadioStations( @Query("offset") offset: Int = 0, @Query("limit") limit : Number = 15) : Response<List<RadioStation>>
 
     @GET("stations/byuuid")
     suspend fun getRadioStationDetails(@Query("uuids") uuids : String) : Response<List<RadioStation>>
+
+    @GET("stations/search")
+    suspend fun getRadioStationsFromLocation(
+        @Query("offset") offset : Int,
+        @Query("limit") limit : Int,
+        @Query("geo_lat") lat : Number,
+        @Query("geo_long") long : Number,
+        @Query("geo_distance") distance : Number
+    ) : Response<List<RadioStation>>
 }
