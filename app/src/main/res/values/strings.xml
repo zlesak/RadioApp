@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">RadioApp</string>
+    <string name="info_icon_desc">Radio detail info icon</string>
+    <string name="favorite_icon_empty">Not favorite radio item icon</string>
+    <string name="favorite_icon_full">Favorite radio station icon</string>
+    <string name="click_count">Number of clicks</string>
+    <string name="country_name">Country of origin</string>
+    <string name="radio_website">Radio web site</string>
+    <string name="play_radio_station">Play radio station</string>
+    <string name="play_button_description">Play button icon</string>
+    <string name="go_back">Go back</string>
+    <string name="radio_icon">Radio icon for missing radio favicon</string>
+</resources>
