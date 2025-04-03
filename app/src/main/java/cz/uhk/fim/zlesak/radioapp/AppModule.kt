@@ -70,7 +70,7 @@ fun provideOkHttpClient(): OkHttpClient {
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-        .baseUrl("http://de2.api.radio-browser.info/json/")
+        .baseUrl("http://de2.api.radio-browser.info/json/")//TODO how to get the api, that is up, else change to other until one up
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

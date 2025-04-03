@@ -2,7 +2,10 @@ package cz.uhk.fim.zlesak.radioapp.ui.screens
 
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,10 +30,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import coil.ImageLoader
@@ -70,7 +82,7 @@ fun RadioDetailScreen(
         }
     }
 
-   fun playStream(url: String) {
+    fun playStream(url: String) {
         try {
             exoPlayer?.apply {
                 setMediaItem(MediaItem.fromUri(url))
@@ -89,7 +101,8 @@ fun RadioDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         when (radioDetail) {
             is ApiResult.Error -> {
@@ -112,52 +125,73 @@ fun RadioDetailScreen(
                     model = radioData.favicon,
                     imageLoader = imageLoader,
                     contentDescription = "${radioData.name} icon",
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(200.dp)
                 )
-                Text(text = radioData.name, fontWeight = FontWeight.Bold)
-                Text(text = "${stringResource(R.string.radio_website)}: ${radioData.homepage}") //TODO add html to make clickable URL
-                Text(text = "${stringResource(R.string.country_name)}: ${radioData.country} (${radioData.countrycode})")
-                Text(text = "${stringResource(R.string.click_count)}: ${radioData.clickcount} ")
-                Button(
-                    onClick = {
-                        if (isPlaying.not()) {
-                            playStream(radioData.url)
-                        } else {
-                            exoPlayer?.apply {
-                                stop()
-                                release()
-                            }
-                            isPlaying = false
-                        }
-                    }) {
-                    if (isPlaying) {
-                        Icon(Icons.Filled.Pause, contentDescription = "Pause")
-                        Text("Pause")
-                    } else {
-                        Icon(
-                            Icons.Filled.PlayArrow,
-                            contentDescription = stringResource(R.string.play_button_description)
+                Spacer(modifier = Modifier.padding(8.dp))
+                Text(text = radioData.name, fontWeight = FontWeight.Bold, fontSize = 35.sp) //TODO Line height fiddle
+                Text(
+                    text = "${radioData.country} (${radioData.countrycode})",
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+                Text(buildAnnotatedString {
+                    append("Radio website: ")
+                    withLink(
+                        LinkAnnotation.Url(
+                            radioData.homepage,
+                            TextLinkStyles(style = SpanStyle(color = Color.Blue))
                         )
-                        Text(text = stringResource(R.string.play_radio_station))
+                    ) {
+                        append(" CLICK HERE ")
                     }
-                }
-                IconButton(onClick = {
-                    if(isFavourite)
-                        radioFavoriteViewModel.removeFavoriteRadio(radioData.stationuuid)
-                    else
-                        radioFavoriteViewModel.addFavoriteRadio(radioData)
-                }) {
-                    if (isFavourite) Icon(
-                        Icons.Filled.Favorite,
-                        contentDescription = stringResource(R.string.favorite_icon_full)
-                    )
-                    else Icon(
-                        Icons.Filled.FavoriteBorder,
-                        contentDescription = stringResource(R.string.favorite_icon_empty)
-                    )
+                })
+                Text(text = "${stringResource(R.string.click_count)}: ${radioData.clickcount} ")
+                Row {
+                    Button(
+                        onClick = {
+                            if (isPlaying.not()) {
+                                playStream(radioData.url)
+                            } else {
+                                exoPlayer?.apply {
+                                    stop()
+                                    release()
+                                }
+                                isPlaying = false
+                            }
+                        }) {
+                        if (isPlaying) {
+                            Icon(Icons.Filled.Pause, contentDescription = "Pause")
+                            Text("Pause")
+                        } else {
+                            Icon(
+                                Icons.Filled.PlayArrow,
+                                contentDescription = stringResource(R.string.play_button_description)
+                            )
+                            Text(text = stringResource(R.string.play_radio_station))
+                        }
+                    }
+                    IconButton(onClick = {
+                        if (isFavourite)
+                            radioFavoriteViewModel.removeFavoriteRadio(radioData.stationuuid)
+                        else
+                            radioFavoriteViewModel.addFavoriteRadio(radioData)
+                    }) {
+                        if (isFavourite) Icon(
+                            Icons.Filled.Favorite,
+                            contentDescription = stringResource(R.string.favorite_icon_full)
+                        )
+                        else Icon(
+                            Icons.Filled.FavoriteBorder,
+                            contentDescription = stringResource(R.string.favorite_icon_empty)
+                        )
+                    }
+                    //TODO AD UPVOTE BUTTON
                 }
                 Button(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.go_back)
+                    )
                     Text(stringResource(R.string.go_back))
                 }
             }

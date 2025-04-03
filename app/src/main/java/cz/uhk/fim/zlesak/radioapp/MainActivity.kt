@@ -1,6 +1,7 @@
 package cz.uhk.fim.zlesak.radioapp
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -53,7 +54,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             RadioAppTheme {
                 val navController = rememberNavController()
-                MainScreen(navController)
+                MainScreen(navController, this)
             }
         }
         requestPositionPermission()
@@ -83,7 +84,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(navController: NavHostController) {
+fun MainScreen(navController: NavHostController, context : Context) {
     var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf(
         BottomNavItem.RadioHome,
@@ -131,20 +132,20 @@ fun MainScreen(navController: NavHostController) {
         }
 
     ) { innerPadding ->
-        Navigation(navController = navController, innerPadding = innerPadding)
+        Navigation(navController = navController, innerPadding = innerPadding, context = context)
     }
 
 }
 
 @Composable
-fun Navigation(navController: NavHostController, innerPadding: PaddingValues) {
+fun Navigation(navController: NavHostController, innerPadding: PaddingValues, context: Context) {
     NavHost(
         navController = navController,
         startDestination = Routes.RadioHome,
         modifier = Modifier.padding(innerPadding)
     ) {
         composable(Routes.RadioHome) { RadioHomeScreen(navController) }
-        composable(Routes.RadioSearch) { RadioSearchScreen(navController, context = LocalContext.current) }
+        composable(Routes.RadioSearch) { RadioSearchScreen(navController, context = context) }
         composable(Routes.RadioDetail) { navBackStackEntry ->
             val radioUuid = navBackStackEntry.arguments?.getString("uuid")
             if (radioUuid != null) {
