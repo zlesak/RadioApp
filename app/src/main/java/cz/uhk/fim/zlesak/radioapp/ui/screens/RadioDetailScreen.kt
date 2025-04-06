@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -40,7 +39,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
@@ -54,6 +52,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CPI
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioHistoryViewModel
 
@@ -113,7 +112,7 @@ fun RadioDetailScreen(
             }
 
             is ApiResult.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                CPI()
             }
 
             is ApiResult.Success -> {

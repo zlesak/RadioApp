@@ -30,6 +30,6 @@ class RadioHistoryRepository (private val radioHistoryBox : Box<RadioStationHist
     }
 
     fun getHistory(): List<RadioStationHistoryEntity> {
-        return radioHistoryBox.all
+        return radioHistoryBox.all.sortedByDescending { it.createdAt }
     }
 }

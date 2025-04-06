@@ -29,7 +29,7 @@
     },
     {
       "id": "2:5077230764302997072",
-      "lastPropertyId": "4:3655125259762881397",
+      "lastPropertyId": "3:1792501200541454149",
       "name": "RadioStationHistoryEntity",
       "properties": [
         {
@@ -47,11 +47,6 @@
           "id": "3:1792501200541454149",
           "name": "uuid",
           "type": 9
-        },
-        {
-          "id": "4:3655125259762881397",
-          "name": "createdAt",
-          "type": 6
         }
       ],
       "relations": []

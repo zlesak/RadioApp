@@ -15,4 +15,12 @@
     <string name="search_text">Search for radio stations</string>
     <string name="radio_search_radius_info">Radio stations close to you</string>
     <string name="dropdownIcon">Drop down menu icon\n</string>
+    <string name="none_favourite">There is none favourite radio station.</string>
+    <string name="try_exploring">Try exploring radio stations to add some.</string>
+    <string name="favourite_header">Check your favourite radios</string>
+    <string name="none_fav_icon">None favourite radio stations icon</string>
+    <string name="clear_icon">Clear icon</string>
+    <string name="clear_hitory">Clear history</string>
+    <string name="no_history">There is no radio stations in history.</string>
+    <string name="none_history_icon">Zero history icon</string>
 </resources>

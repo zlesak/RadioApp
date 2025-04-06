@@ -25,7 +25,7 @@ class RadioHistoryViewModel(private val radioRepository : RadioHistoryRepository
             getHistory()
         }
     }
-    fun clearHistory(uuid: String){
+    fun clearHistory(){
         viewModelScope.launch {
             radioRepository.clearHistory()
             getHistory()
