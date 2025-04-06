@@ -1,6 +1,7 @@
 package cz.uhk.fim.zlesak.radioapp.ui.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cz.uhk.fim.zlesak.radioapp.R
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CountrySelector
 import cz.uhk.fim.zlesak.radioapp.ui.items.RadioStationItem
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioSearchViewModel
@@ -55,6 +57,7 @@ fun RadioSearchScreen(
     val gpsRadioList by radioViewModel.gpsRadioList.collectAsState()
     val radioList by radioViewModel.searchedRadioList.collectAsState()
     val favorites by viewModel.radioFavoriteList.collectAsState()
+    val countries by radioViewModel.radioCountryList.collectAsState()
 
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
 
@@ -62,14 +65,20 @@ fun RadioSearchScreen(
 
     var empty = true
 
+    var selectedCountryIndex by remember { mutableStateOf(0) }
+
     LaunchedEffect(Unit) {
+        radioViewModel.getRadioStationsCountries()
         viewModel.loadFavoriteRadios()
         radioSearchViewModel.getPosition(context)
         radioViewModel.clearSearchedRadioList()
     }
     LaunchedEffect(loc) {
         if (loc != null) {
-            radioViewModel.getRadioStationsFromLocation(lat = loc!!.latitude, long = loc!!.longitude)
+            radioViewModel.getRadioStationsFromLocation(
+                lat = loc!!.latitude,
+                long = loc!!.longitude
+            )
         }
     }
 
@@ -89,9 +98,8 @@ fun RadioSearchScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
-        Row(modifier = Modifier.conditional(!empty) {
-            weight(2f)
-        }
+        Row(
+            modifier = Modifier.conditional(!empty) {weight(2f)}
         ) {
             Column {
                 Row(modifier = Modifier.fillMaxWidth())
@@ -112,7 +120,7 @@ fun RadioSearchScreen(
                             .width(60.dp)
                             .height(60.dp),
                         onClick = {
-                            if(searchText.text.isNotEmpty() && (radioList is ApiResult.Loading || radioList is ApiResult.Error))
+                            if (searchText.text.isNotEmpty() && (radioList is ApiResult.Loading || radioList is ApiResult.Error))
                                 radioViewModel.getSearchedRadioStations(name = searchText.text)
                             else {
                                 searchText = TextFieldValue("")
@@ -120,12 +128,34 @@ fun RadioSearchScreen(
                             }
                         }
                     ) {
-                        if(radioList is ApiResult.Loading || radioList is ApiResult.Error)
+                        if (radioList is ApiResult.Loading || radioList is ApiResult.Error)
                             Icon(Icons.Filled.Search, stringResource(R.string.search_icon))
                         else
                             Icon(Icons.Filled.Clear, stringResource(R.string.search_icon))
                     }
                 }
+                when (countries) {
+                    is ApiResult.Success -> {
+                        CountrySelector(
+                            countries = countries,
+                            selectedIndex = selectedCountryIndex,
+                            onCountrySelected = { cn ->
+                                radioViewModel.selectedCountry(cn)
+                                Log.d(this::class.toString(), "$cn is this")
+                            },
+                            onItemSelectedIndex = { ind ->
+                                selectedCountryIndex = ind
+                            }
+                        )
+                    }
+                    is ApiResult.Loading -> {
+                        CircularProgressIndicator()
+                    }
+                    is ApiResult.Error -> {
+                        Text("Error loading countries")
+                    }
+                }
+                //Searched radio stations listing
                 Row {
                     when (radioList) {
                         is ApiResult.Error -> {
@@ -157,7 +187,7 @@ fun RadioSearchScreen(
         Row(modifier = Modifier.weight(1f)) {
             Column {
                 Text(
-                    text = stringResource(R.string.radio_search_radius_info), //TODO replace all texts to be as resources
+                    text = stringResource(R.string.radio_search_radius_info),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier
                         .padding(8.dp)
@@ -176,7 +206,7 @@ fun RadioSearchScreen(
 
                     is ApiResult.Success -> {
                         val list = (gpsRadioList as ApiResult.Success).data
-                        if(list.isNotEmpty()) {
+                        if (list.isNotEmpty()) {
                             LazyColumn {
                                 items(list) { radio ->
                                     val isFavorite = if (favorites is ApiResult.Success) {
@@ -188,7 +218,7 @@ fun RadioSearchScreen(
                                     HorizontalDivider()
                                 }
                             }
-                        }else{
+                        } else {
                             Text("There are no radio stations near you.")
                             Text("Try searching for some using search option.")
                         }

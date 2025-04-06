@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
 import cz.uhk.fim.zlesak.radioapp.api.IRadioApi
+import cz.uhk.fim.zlesak.radioapp.data.Country
 import cz.uhk.fim.zlesak.radioapp.data.RadioStation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,15 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
     val gpsRadioList : StateFlow<ApiResult<List<RadioStation>>> = _gpsRadioList.asStateFlow()
     private val _searchedRadioList = MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
     val searchedRadioList : StateFlow<ApiResult<List<RadioStation>>> = _searchedRadioList.asStateFlow()
+    private val _radioCountryList = MutableStateFlow<ApiResult<List<Country>>>(ApiResult.Loading)
+    val radioCountryList : StateFlow<ApiResult<List<Country>>> = _radioCountryList.asStateFlow()
+
+    private val _radioCountryName = MutableStateFlow("")
+//    val radioCountryName : StateFlow<String> = _radioCountryName.asStateFlow()
+
+    fun selectedCountry(country : String) {
+        _radioCountryName. value = country
+    }
 
     fun getRadioByUuid(uuid : String){
         viewModelScope.launch {
@@ -44,30 +54,30 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
         }
     }
 
-    fun getRadioStations(offset : Number = 0, limit : Number = 15){
-        viewModelScope.launch {
-            _radioList.value = ApiResult.Loading
-            try {
-                val response = radioApi.getAllRadioStations(offset, limit)
-                if(response.isSuccessful){
-                    val data : List<RadioStation>? = response.body()
+//    fun getRadioStations(offset : Number = 0, limit : Number = 15){
+//        viewModelScope.launch {
+//            _radioList.value = ApiResult.Loading
+//            try {
+//                val response = radioApi.getAllRadioStations(offset, limit)
+//                if(response.isSuccessful){
+//                    val data : List<RadioStation>? = response.body()
+//
+//                    if(data != null){
+//                        _radioList.value = ApiResult.Success(data)
+//                    }else{
+//                        _radioList.value = ApiResult.Error("Data null")
+//                    }
+//                }else{
+//                    _radioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
+//                }
+//            }
+//            catch (e : Exception){
+//                _radioList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
+//            }
+//        }
+//    }
 
-                    if(data != null){
-                        _radioList.value = ApiResult.Success(data)
-                    }else{
-                        _radioList.value = ApiResult.Error("Data null")
-                    }
-                }else{
-                    _radioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
-                }
-            }
-            catch (e : Exception){
-                _radioList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
-            }
-        }
-    }
-
-    fun getSearchedRadioStations(offset: Int = 0, limit: Int = 15, name : String, country :String = "", language :String = "", tagList :String = "" ){
+    fun getSearchedRadioStations(offset: Int = 0, limit: Int = 15, name : String, country :String = _radioCountryName.value, language :String = "", tagList :String = "" ){
         viewModelScope.launch {
             _searchedRadioList.value = ApiResult.Loading
             try {
@@ -136,10 +146,36 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
             }
         }
     }
+
     fun clearSearchedRadioList(){
         viewModelScope.launch {
             _searchedRadioList.value = ApiResult.Loading
             Log.d("RadioViewModel", "Cleared searched radio data")
+        }
+    }
+
+    fun getRadioStationsCountries(){
+        viewModelScope.launch {
+            try {
+                val response = radioApi.getRadioStationsCountryCodes()
+                if(response.isSuccessful){
+                    val data : List<Country>? = response.body()
+
+                    if(data != null){
+                        _radioCountryList.value = ApiResult.Success(data)
+                        Log.d(this::class.toString(), "Data for getRadioStationsCountryCodes fetched successfully")
+                    }else{
+                        _radioCountryList.value = ApiResult.Error("Data null")
+                    }
+                }else{
+                    _radioCountryList.value = ApiResult.Error("Error while getting data from getRadioStationsCountryCodes api: ${response.message()}")
+                    Log.d(this::class.toString(), "Error while getting data from getRadioStationsCountryCodes api")
+                }
+            }
+            catch (e : Exception){
+                _radioCountryList.value = ApiResult.Error("Exception happened when fetching data: ${e.message}")
+                Log.d(this::class.toString(), "Exception happened when fetching data")
+            }
         }
     }
 }

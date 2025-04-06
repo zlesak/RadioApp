@@ -1,5 +1,6 @@
 package cz.uhk.fim.zlesak.radioapp.api
 
+import cz.uhk.fim.zlesak.radioapp.data.Country
 import cz.uhk.fim.zlesak.radioapp.data.RadioStation
 import retrofit2.Response
 import retrofit2.http.GET
@@ -33,4 +34,6 @@ interface IRadioApi {
         @Query("geo_long") long : Number,
         @Query("geo_distance") distance : Number
     ) : Response<List<RadioStation>>
+    @GET("countries")
+    suspend fun getRadioStationsCountryCodes() : Response<List<Country>>
 }

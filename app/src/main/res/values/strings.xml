@@ -14,4 +14,5 @@
     <string name="search">Search</string>
     <string name="search_text">Search for radio stations</string>
     <string name="radio_search_radius_info">Radio stations close to you</string>
+    <string name="dropdownIcon">Drop down menu icon\n</string>
 </resources>

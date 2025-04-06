@@ -42,7 +42,6 @@ class RadioApiInterceptor(
                 }
             } catch (e: Exception) {
                 Log.d(this::class.toString(), "$baseUrl API error.")
-                // continue to next mirror
             }
         }
         Log.e(this::class.toString(), "There is no working api from defined list at this moment!")

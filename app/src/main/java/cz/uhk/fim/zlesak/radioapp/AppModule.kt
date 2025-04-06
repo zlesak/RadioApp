@@ -84,7 +84,7 @@ fun provideOkHttpClient(): OkHttpClient {
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-        .baseUrl("http://api.radio-browser.info/json/")
+        .baseUrl("http://at1.radio-browser.info/json/")
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
