@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cz.uhk.fim.zlesak.radioapp.R
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CPI
 import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CountrySelector
 import cz.uhk.fim.zlesak.radioapp.ui.items.RadioStationItem
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
@@ -65,7 +67,7 @@ fun RadioSearchScreen(
 
     var empty = true
 
-    var selectedCountryIndex by remember { mutableStateOf(0) }
+    var selectedCountryIndex by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         radioViewModel.getRadioStationsCountries()
@@ -149,7 +151,7 @@ fun RadioSearchScreen(
                         )
                     }
                     is ApiResult.Loading -> {
-                        CircularProgressIndicator()
+                        CPI()
                     }
                     is ApiResult.Error -> {
                         Text("Error loading countries")
