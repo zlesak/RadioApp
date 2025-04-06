@@ -5,10 +5,14 @@ import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import cz.uhk.fim.zlesak.radioapp.api.IRadioApi
+import cz.uhk.fim.zlesak.radioapp.api.RadioApiInterceptor
 import cz.uhk.fim.zlesak.radioapp.data.MyObjectBox
 import cz.uhk.fim.zlesak.radioapp.data.RadioStationFavoriteEntity
+import cz.uhk.fim.zlesak.radioapp.data.RadioStationHistoryEntity
 import cz.uhk.fim.zlesak.radioapp.repository.RadioFavoriteRepository
+import cz.uhk.fim.zlesak.radioapp.repository.RadioHistoryRepository
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
+import cz.uhk.fim.zlesak.radioapp.viewModels.RadioHistoryViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioSearchViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioViewModel
 import io.objectbox.BoxStore
@@ -17,15 +21,18 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val repositoryModule = module {
-    single { RadioFavoriteRepository(get()) }
+    single { RadioFavoriteRepository(get(named("favoritesBox"))) }
+    single { RadioHistoryRepository(get(named("historyBox"))) }
 }
 val viewModelModule = module {
     viewModel { RadioFavoriteViewModel(get(), get()) }
+    viewModel { RadioHistoryViewModel(get(), get()) }
     viewModel { RadioViewModel(get()) }
     viewModel { RadioSearchViewModel() }
 }
@@ -37,11 +44,12 @@ val networkModule = module {
 }
 val objectBoxModule = module {
     single {
-        MyObjectBox.builder() //nejdříve se musí zbuildovat aby šlo importovat
+        MyObjectBox.builder()
             .androidContext(androidContext())
             .build()
     }
-    single { get<BoxStore>().boxFor(RadioStationFavoriteEntity::class.java) }
+    single (named("favoritesBox")){ get<BoxStore>().boxFor(RadioStationFavoriteEntity::class.java) }
+    single (named("historyBox")){ get<BoxStore>().boxFor(RadioStationHistoryEntity::class.java) }
 }
 val imageModule = module{
     single {
@@ -50,10 +58,15 @@ val imageModule = module{
 }
 
 fun provideOkHttpClient(): OkHttpClient {
+    val radioApis = listOf(
+        "https://de1.api.radio-browser.info/json/",
+        "https://at1.api.radio-browser.info/json/",
+        "https://fi1.api.radio-browser.info/json/",
+        "https://de2.api.radio-browser.info/json/"
+    )
     val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
-
     val userAgentInterceptor = Interceptor { chain ->
         val request = chain.request()
             .newBuilder()
@@ -65,12 +78,13 @@ fun provideOkHttpClient(): OkHttpClient {
     return OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor(userAgentInterceptor)
+        .addInterceptor(RadioApiInterceptor(radioApis))
         .build()
 }
 
 fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
-        .baseUrl("http://de2.api.radio-browser.info/json/")//TODO how to get the api, that is up, else change to other until one up
+        .baseUrl("http://api.radio-browser.info/json/")
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()

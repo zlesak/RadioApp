@@ -55,6 +55,7 @@ import org.koin.compose.koinInject
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
+import cz.uhk.fim.zlesak.radioapp.viewModels.RadioHistoryViewModel
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -63,6 +64,7 @@ fun RadioDetailScreen(
     radioUuid: String,
     radioViewModel: RadioViewModel = koinViewModel(),
     radioFavoriteViewModel: RadioFavoriteViewModel = koinViewModel(),
+    radioHistoryViewModel: RadioHistoryViewModel = koinViewModel(),
     imageLoader: ImageLoader = koinInject()
 
 ) {
@@ -121,6 +123,7 @@ fun RadioDetailScreen(
                 } else {
                     false
                 }
+                radioHistoryViewModel.addToHistory(radioData)
                 AsyncImage(
                     model = radioData.favicon,
                     imageLoader = imageLoader,

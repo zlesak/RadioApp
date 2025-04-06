@@ -26,9 +26,33 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "2:5077230764302997072",
+      "lastPropertyId": "3:1792501200541454149",
+      "name": "RadioStationHistoryEntity",
+      "properties": [
+        {
+          "id": "1:5588182953498209283",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3570697648404328901",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "3:1792501200541454149",
+          "name": "uuid",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "1:2079146555472107750",
+  "lastEntityId": "2:5077230764302997072",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

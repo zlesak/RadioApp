@@ -13,8 +13,8 @@ class RadioFavoriteRepository(private val radioFavoriteBox : Box<RadioStationFav
             .build()
         val result = query.findFirst()
         if(result == null) {
-            val favoriteCryptoEntity = RadioStationFavoriteEntity(uuid = radio.stationuuid, name = radio.name)
-            radioFavoriteBox.put(favoriteCryptoEntity)
+            val rad = RadioStationFavoriteEntity(uuid = radio.stationuuid, name = radio.name)
+            radioFavoriteBox.put(rad)
         }
         query.close()
     }

@@ -58,8 +58,7 @@ fun RadioSearchScreen(
 
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
 
-    val lat by radioSearchViewModel.lat.collectAsState()
-    val long by radioSearchViewModel.long.collectAsState()
+    val loc by radioSearchViewModel.loc.collectAsState()
 
     var empty = true
 
@@ -68,9 +67,9 @@ fun RadioSearchScreen(
         radioSearchViewModel.getPosition(context)
         radioViewModel.clearSearchedRadioList()
     }
-    LaunchedEffect(lat, long) {
-        if (lat != null && long != null) {
-            radioViewModel.getRadioStationsFromLocation(lat = lat!!, long = long!!)
+    LaunchedEffect(loc) {
+        if (loc != null) {
+            radioViewModel.getRadioStationsFromLocation(lat = loc!!.latitude, long = loc!!.longitude)
         }
     }
 
@@ -177,17 +176,21 @@ fun RadioSearchScreen(
 
                     is ApiResult.Success -> {
                         val list = (gpsRadioList as ApiResult.Success).data
-
-                        LazyColumn {
-                            items(list) { radio ->
-                                val isFavorite = if (favorites is ApiResult.Success) {
-                                    (favorites as ApiResult.Success).data.any { it.stationuuid == radio.stationuuid }
-                                } else {
-                                    false
+                        if(list.isNotEmpty()) {
+                            LazyColumn {
+                                items(list) { radio ->
+                                    val isFavorite = if (favorites is ApiResult.Success) {
+                                        (favorites as ApiResult.Success).data.any { it.stationuuid == radio.stationuuid }
+                                    } else {
+                                        false
+                                    }
+                                    RadioStationItem(radio, navController, isFavorite = isFavorite)
+                                    HorizontalDivider()
                                 }
-                                RadioStationItem(radio, navController, isFavorite = isFavorite)
-                                HorizontalDivider()
                             }
+                        }else{
+                            Text("There are no radio stations near you.")
+                            Text("Try searching for some using search option.")
                         }
                     }
                 }
