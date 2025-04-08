@@ -22,20 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
-import cz.uhk.fim.zlesak.radioapp.data.Country
+import cz.uhk.fim.zlesak.radioapp.data.Tag
 
 @Composable
-fun CountrySelector(
-    countries: ApiResult<List<Country>>,
+fun TagSelector(
+    tags: ApiResult<List<Tag>>,
     selectedIndex: Int,
-    onCountrySelected: (String) -> Unit,
+    onTagSelected: (String) -> Unit,
     onItemSelectedIndex: (Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
 
-    when (countries) {
+    when (tags) {
         is ApiResult.Error -> Text("Error loading countries")
         is ApiResult.Loading -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
         is ApiResult.Success -> {
@@ -47,7 +47,7 @@ fun CountrySelector(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = countries.data[selectedIndex].name,
+                        text = tags.data[selectedIndex].name,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
@@ -57,9 +57,9 @@ fun CountrySelector(
                 }
 
                 CustomDropdown(
-                    items = countries.data.map { it.name },
+                    items = tags.data.map { it.name },
                     selectedIndex = selectedIndex,
-                    onItemSelected = onCountrySelected,
+                    onItemSelected = onTagSelected,
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                     onItemSelectedIndex = onItemSelectedIndex,

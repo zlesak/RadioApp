@@ -1,7 +1,9 @@
 package cz.uhk.fim.zlesak.radioapp.api
 
 import cz.uhk.fim.zlesak.radioapp.data.Country
+import cz.uhk.fim.zlesak.radioapp.data.Language
 import cz.uhk.fim.zlesak.radioapp.data.RadioStation
+import cz.uhk.fim.zlesak.radioapp.data.Tag
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -36,4 +38,8 @@ interface IRadioApi {
     ) : Response<List<RadioStation>>
     @GET("countries")
     suspend fun getRadioStationsCountryCodes() : Response<List<Country>>
+    @GET("languages")
+    suspend fun getRadioStationsLanguages() : Response<List<Language>>
+    @GET("tags")
+    suspend fun getRadioStationsTags() : Response<List<Tag>>
 }

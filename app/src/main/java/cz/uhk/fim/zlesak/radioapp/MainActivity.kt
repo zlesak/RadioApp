@@ -143,15 +143,15 @@ fun Navigation(navController: NavHostController, innerPadding: PaddingValues, co
         startDestination = Routes.RadioHome,
         modifier = Modifier.padding(innerPadding)
     ) {
-        composable(Routes.RadioHome) { RadioHomeScreen(navController) }
+        composable(Routes.RadioHome) { RadioHomeScreen(navController, context = context) }
         composable(Routes.RadioSearch) { RadioSearchScreen(navController, context = context) }
         composable(Routes.RadioDetail) { navBackStackEntry ->
             val radioUuid = navBackStackEntry.arguments?.getString("uuid")
             if (radioUuid != null) {
-                RadioDetailScreen(navController, radioUuid)
+                RadioDetailScreen(navController, radioUuid, context = context)
             }
         }
-        composable(Routes.RadioFavorites) { RadioFavoriteScreen(navController) }
-        composable(Routes.RadioHistory) { RadioHistoryScreen(navController) }
+        composable(Routes.RadioFavorites) { RadioFavoriteScreen(navController, context = context) }
+        composable(Routes.RadioHistory) { RadioHistoryScreen(navController, context = context) }
     }
 }

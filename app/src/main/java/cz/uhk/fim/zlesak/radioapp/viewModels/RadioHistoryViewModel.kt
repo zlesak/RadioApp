@@ -11,28 +11,33 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class RadioHistoryViewModel(private val radioRepository : RadioHistoryRepository, private val radioApi: IRadioApi) : ViewModel() {
-    private val _radioHistoryList = MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
+class RadioHistoryViewModel(
+    private val radioRepository: RadioHistoryRepository,
+    private val radioApi: IRadioApi
+) : ViewModel() {
+    private val _radioHistoryList =
+        MutableStateFlow<ApiResult<List<RadioStation>>>(ApiResult.Loading)
     val radioHistoryList = _radioHistoryList.asStateFlow()
 
-    init{
+    init {
         getHistory()
     }
 
-    fun addToHistory(radio: RadioStation){
+    fun addToHistory(radio: RadioStation) {
         viewModelScope.launch {
             radioRepository.addRadioToHistory(radio)
             getHistory()
         }
     }
-    fun clearHistory(){
+
+    fun clearHistory() {
         viewModelScope.launch {
             radioRepository.clearHistory()
             getHistory()
         }
     }
 
-    fun getHistory (){
+    fun getHistory() {
         viewModelScope.launch {
             try {
                 val favoriteEntities = radioRepository.getHistory()
@@ -43,20 +48,26 @@ class RadioHistoryViewModel(private val radioRepository : RadioHistoryRepository
                     val result = radioApi.getRadioStationDetails(uuids)
                     if (result.isSuccessful) {
                         val data = result.body()
-                        if(data != null){
+                        if (data != null) {
                             _radioHistoryList.value = ApiResult.Success(data)
-                            Log.i(this::class.toString(), "Data of radio history fetched successfully.")
-                        }else{
+                            Log.i(
+                                this::class.toString(),
+                                "Data of radio history fetched successfully."
+                            )
+                        } else {
                             _radioHistoryList.value = ApiResult.Error("Data null")
                             Log.w(this::class.toString(), "Radio history is null")
                         }
                     } else {
                         _radioHistoryList.value =
                             ApiResult.Error("Error while getting radio history from APi ${result.message()}")
-                        Log.e(this::class.toString(), "There has been an error when getting radio history")
+                        Log.e(
+                            this::class.toString(),
+                            "There has been an error when getting radio history"
+                        )
                     }
                 }
-            }catch (ex : Exception){
+            } catch (ex: Exception) {
                 _radioHistoryList.value = ApiResult.Error("Exception ${ex.message}")
             }
         }

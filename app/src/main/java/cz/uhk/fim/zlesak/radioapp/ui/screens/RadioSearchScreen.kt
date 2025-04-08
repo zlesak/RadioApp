@@ -4,22 +4,18 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.GpsNotFixed
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.SignalWifiConnectedNoInternet4
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -30,19 +26,23 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cz.uhk.fim.zlesak.radioapp.R
 import cz.uhk.fim.zlesak.radioapp.api.ApiResult
+import cz.uhk.fim.zlesak.radioapp.data.Language
+import cz.uhk.fim.zlesak.radioapp.router.NetworkMonitorHelper
 import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CPI
 import cz.uhk.fim.zlesak.radioapp.ui.composeItems.CountrySelector
-import cz.uhk.fim.zlesak.radioapp.ui.items.RadioStationItem
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.HeaderComponent
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.LanguageSelector
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.RadioListCompose
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.SadComponent
+import cz.uhk.fim.zlesak.radioapp.ui.composeItems.TagSelector
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioFavoriteViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioSearchViewModel
 import cz.uhk.fim.zlesak.radioapp.viewModels.RadioViewModel
@@ -60,7 +60,12 @@ fun RadioSearchScreen(
     val radioList by radioViewModel.searchedRadioList.collectAsState()
     val favorites by viewModel.radioFavoriteList.collectAsState()
     val countries by radioViewModel.radioCountryList.collectAsState()
+    val tags by radioViewModel.radioTagList.collectAsState()
+    val languages by radioViewModel.radioLanguageList.collectAsState()
 
+    val radioCountryName by radioViewModel.radioCountryName.collectAsState()
+    val radioLanguageName by radioViewModel.radioLanguageName.collectAsState()
+    val radioTagName by radioViewModel.radioTagName.collectAsState()
     var searchText by remember { mutableStateOf(TextFieldValue("")) }
 
     val loc by radioSearchViewModel.loc.collectAsState()
@@ -68,15 +73,23 @@ fun RadioSearchScreen(
     var empty = true
 
     var selectedCountryIndex by remember { mutableIntStateOf(0) }
+    var selectedTagIndex by remember { mutableIntStateOf(0) }
+    var selectedLanguageIndex by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
+    val networkMonitor = remember { NetworkMonitorHelper(context) }
+    val isOnline by networkMonitor.isOnline.collectAsState(initial = false)
+
+    LaunchedEffect(isOnline) {
         radioViewModel.getRadioStationsCountries()
+        radioViewModel.getRadioStationsTags()
+        radioViewModel.getRadioStationsLanguages()
+
         viewModel.loadFavoriteRadios()
         radioSearchViewModel.getPosition(context)
         radioViewModel.clearSearchedRadioList()
     }
     LaunchedEffect(loc) {
-        if (loc != null) {
+        if (loc != null && isOnline) {
             radioViewModel.getRadioStationsFromLocation(
                 lat = loc!!.latitude,
                 long = loc!!.longitude
@@ -86,23 +99,12 @@ fun RadioSearchScreen(
 
     Column(modifier = Modifier.padding(16.dp)) {
         Row {
-            Column {
-                Text(
-                    text = "Explore radio stations",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            HeaderComponent(R.string.search_headline)
         }
         Row(
-            modifier = Modifier.conditional(!empty) {weight(2f)}
-        ) {
+            modifier = Modifier.conditional(!empty) { weight(2f) }
+        )//search
+        {
             Column {
                 Row(modifier = Modifier.fillMaxWidth())
                 {
@@ -122,8 +124,14 @@ fun RadioSearchScreen(
                             .width(60.dp)
                             .height(60.dp),
                         onClick = {
-                            if (searchText.text.isNotEmpty() && (radioList is ApiResult.Loading || radioList is ApiResult.Error))
-                                radioViewModel.getSearchedRadioStations(name = searchText.text)
+                            if (searchText.text.isNotEmpty() || selectedCountryIndex != 0 || selectedTagIndex != 0 || selectedLanguageIndex != 0) {
+                                radioViewModel.getSearchedRadioStations(
+                                    name = searchText.text,
+                                    country = radioCountryName,
+                                    language = radioLanguageName,
+                                    tag = radioTagName
+                                )
+                            }
                             else {
                                 searchText = TextFieldValue("")
                                 radioViewModel.clearSearchedRadioList()
@@ -136,28 +144,89 @@ fun RadioSearchScreen(
                             Icon(Icons.Filled.Clear, stringResource(R.string.search_icon))
                     }
                 }
-                when (countries) {
-                    is ApiResult.Success -> {
-                        CountrySelector(
-                            countries = countries,
-                            selectedIndex = selectedCountryIndex,
-                            onCountrySelected = { cn ->
-                                radioViewModel.selectedCountry(cn)
-                                Log.d(this::class.toString(), "$cn is this")
-                            },
-                            onItemSelectedIndex = { ind ->
-                                selectedCountryIndex = ind
-                            }
+                when (isOnline) {
+                    false -> {
+                        SadComponent(
+                            Icons.Filled.SignalWifiConnectedNoInternet4,
+                            R.string.no_internet,
+                            text1 = R.string.no_internet_message,
+                            text2 = R.string.no_internet_help
                         )
                     }
-                    is ApiResult.Loading -> {
-                        CPI()
-                    }
-                    is ApiResult.Error -> {
-                        Text("Error loading countries")
+
+                    true -> {
+                        when (countries) {
+                            is ApiResult.Success -> {
+                                CountrySelector(
+                                    countries = countries,
+                                    selectedIndex = selectedCountryIndex,
+                                    onCountrySelected = { cn ->
+                                        radioViewModel.selectedCountry(cn)
+                                        Log.d(this::class.toString(), "$cn is this")
+                                    },
+                                    onItemSelectedIndex = { ind ->
+                                        selectedCountryIndex = ind
+                                    }
+                                )
+                            }
+
+                            is ApiResult.Loading -> {
+                                CPI()
+                            }
+
+                            is ApiResult.Error -> {
+                                Text("Error loading countries")
+                            }
+                        }
+                        when (tags) {
+                            is ApiResult.Success -> {
+                                TagSelector(
+                                    tags = tags,
+                                    selectedIndex = selectedTagIndex,
+                                    onTagSelected = { cn ->
+                                        radioViewModel.selectedTag(cn)
+                                        Log.d(this::class.toString(), "$cn is this")
+                                    },
+                                    onItemSelectedIndex = { ind ->
+                                        selectedTagIndex = ind
+                                    }
+                                )
+                            }
+
+                            is ApiResult.Loading -> {
+                                CPI()
+                            }
+
+                            is ApiResult.Error -> {
+                                Text("Error loading countries")
+                            }
+                        }
+                        when (languages) {
+                            is ApiResult.Success -> {
+                                LanguageSelector (
+                                    languages = languages,
+                                    selectedIndex = selectedLanguageIndex,
+                                    onLanguageSelected = { cn ->
+                                        radioViewModel.selectedLanguage(cn)
+                                        Log.d(this::class.toString(), "$cn is this")
+                                    },
+                                    onItemSelectedIndex = { ind ->
+                                        selectedLanguageIndex = ind
+                                    }
+                                )
+                            }
+
+                            is ApiResult.Loading -> {
+                                CPI()
+                            }
+
+                            is ApiResult.Error -> {
+                                Text("Error loading countries")
+                            }
+                        }
                     }
                 }
-                //Searched radio stations listing
+                //listing
                 Row {
                     when (radioList) {
                         is ApiResult.Error -> {
@@ -169,68 +238,56 @@ fun RadioSearchScreen(
 
                         is ApiResult.Success -> {
                             val list = (radioList as ApiResult.Success).data
-                            LazyColumn {
-                                items(list) { radio ->
-                                    val isFavorite = if (favorites is ApiResult.Success) {
-                                        (favorites as ApiResult.Success).data.any { it.stationuuid == radio.stationuuid }
-                                    } else {
-                                        false
-                                    }
-                                    RadioStationItem(radio, navController, isFavorite = isFavorite)
-                                    HorizontalDivider()
-                                }
-                            }
+                            RadioListCompose(list, favorites, navController)
                             empty = list.isEmpty()
                         }
                     }
                 }
             }
         }
+
+        //location
         Row(modifier = Modifier.weight(1f)) {
             Column {
-                Text(
-                    text = stringResource(R.string.radio_search_radius_info),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .align(Alignment.CenterHorizontally)
+                HeaderComponent(R.string.radio_search_radius_info)
+                if (!isOnline) {
+                    SadComponent(
+                        Icons.Filled.SignalWifiConnectedNoInternet4,
+                        R.string.no_internet,
+                        text1 = R.string.no_internet_message,
+                        text2 = R.string.no_internet_help
+                    )
+                } else {
+                    when (gpsRadioList) {
+                        is ApiResult.Error -> {
+                            val errorMessage = (gpsRadioList as ApiResult.Error).message
+                            Text(text = "Error: $errorMessage")
+                        }
 
-                )
-                when (gpsRadioList) {
-                    is ApiResult.Error -> {
-                        val errorMessage = (gpsRadioList as ApiResult.Error).message
-                        Text(text = "Error: $errorMessage")
-                    }
+                        is ApiResult.Loading -> {
+                            CPI()
+                        }
 
-                    is ApiResult.Loading -> {
-                        CircularProgressIndicator()
-                    }
-
-                    is ApiResult.Success -> {
-                        val list = (gpsRadioList as ApiResult.Success).data
-                        if (list.isNotEmpty()) {
-                            LazyColumn {
-                                items(list) { radio ->
-                                    val isFavorite = if (favorites is ApiResult.Success) {
-                                        (favorites as ApiResult.Success).data.any { it.stationuuid == radio.stationuuid }
-                                    } else {
-                                        false
-                                    }
-                                    RadioStationItem(radio, navController, isFavorite = isFavorite)
-                                    HorizontalDivider()
-                                }
+                        is ApiResult.Success -> {
+                            val list = (gpsRadioList as ApiResult.Success).data
+                            if (list.isNotEmpty()) {
+                                RadioListCompose(list, favorites, navController)
+                            } else {
+                                SadComponent(
+                                    Icons.Filled.GpsNotFixed,
+                                    R.string.no_near_icon,
+                                    R.string.no_radio_in_near,
+                                    R.string.no_radio_near_help
+                                )
                             }
-                        } else {
-                            Text("There are no radio stations near you.")
-                            Text("Try searching for some using search option.")
                         }
                     }
                 }
-                HorizontalDivider(thickness = 4.dp)
             }
         }
     }
 }
+
 
 fun Modifier.conditional(condition: Boolean, modifier: Modifier.() -> Modifier): Modifier {
     return if (condition) {

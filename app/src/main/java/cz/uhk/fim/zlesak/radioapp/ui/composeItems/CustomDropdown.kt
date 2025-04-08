@@ -31,17 +31,15 @@ fun CustomDropdown(
     onDismissRequest: () -> Unit
 ) {
     Box {
-        // Clickable overlay to close when clicking outside (MUST COME FIRST)
         if (expanded) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize() // Covers entire screen
+                    .fillMaxSize()
                     .background(Color.Transparent)
                     .clickable(onClick = onDismissRequest)
             )
         }
 
-        // Dropdown content (comes after overlay)
         if (expanded) {
             Box(
                 modifier = modifier
@@ -49,7 +47,7 @@ fun CustomDropdown(
                     .border(1.dp, MaterialTheme.colorScheme.outline)
                     .heightIn(max = 300.dp)
                     .width(200.dp)
-                    .zIndex(1f) // Ensures dropdown appears above overlay
+                    .zIndex(1f)
             ) {
                 LazyColumn {
                     itemsIndexed(items) { index, item ->
