@@ -40,13 +40,28 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
     val radioTagName : StateFlow<String> = _radioTagName.asStateFlow()
 
     fun selectedCountry(country : String) {
-        _radioCountryName. value = country
+        if(country == "No country selected") {
+            _radioCountryName.value = ""
+        }
+        else {
+            _radioCountryName.value = country
+        }
     }
     fun selectedTag(tag : String) {
-        _radioTagName. value = tag
+        if(tag == "No tag selected") {
+            _radioTagName.value = ""
+        }
+        else {
+            _radioTagName.value = tag
+        }
     }
     fun selectedLanguage(language : String) {
-        _radioLanguageName. value = language
+        if(language == "No language selected") {
+            _radioLanguageName.value = ""
+        }
+        else {
+            _radioLanguageName.value = language
+        }
     }
 
     fun getRadioByUuid(uuid : String){
@@ -72,21 +87,34 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
         }
     }
 
-    fun getSearchedRadioStations(offset: Int = 0, limit: Int = 15, name : String, country :String = "", language :String = "", tag :String = "" ){
+    fun getSearchedRadioStations(offset: Int = 0, limit: Int = 15, name : String = ""){
         viewModelScope.launch {
             _searchedRadioList.value = ApiResult.Loading
             try {
-                val response = radioApi.getSearchedRadioStations(offset, limit, name, country, language, tag)
-                if(response.isSuccessful){
-                    val data : List<RadioStation>? = response.body()
+                if(allEmpty(name))
+                    clearSearchedRadioList()
+                else {
+                    val response = radioApi.getSearchedRadioStations(
+                        offset,
+                        limit,
+                        name,
+                        radioCountryName.value,
+                        radioLanguageName.value,
+                        radioTagName.value
+                    )
 
-                    if(data != null){
-                        _searchedRadioList.value = ApiResult.Success(data)
-                    }else{
-                        _searchedRadioList.value = ApiResult.Error("Data null")
+                    if (response.isSuccessful) {
+                        val data: List<RadioStation>? = response.body()
+
+                        if (data != null) {
+                            _searchedRadioList.value = ApiResult.Success(data)
+                        } else {
+                            _searchedRadioList.value = ApiResult.Error("Data null")
+                        }
+                    } else {
+                        _searchedRadioList.value =
+                            ApiResult.Error("Error while getting data from api: ${response.message()}")
                     }
-                }else{
-                    _searchedRadioList.value = ApiResult.Error("Error while getting data from api: ${response.message()}")
                 }
             }
             catch (e : Exception){
@@ -228,5 +256,9 @@ class RadioViewModel (private val radioApi : IRadioApi) :ViewModel(){
                 Log.d(this::class.toString(), "Exception happened when fetching data")
             }
         }
+    }
+
+    fun allEmpty(name : String) :Boolean{
+        return radioTagName.value =="" && radioLanguageName.value == "" && radioCountryName.value == "" && name ==""
     }
 }

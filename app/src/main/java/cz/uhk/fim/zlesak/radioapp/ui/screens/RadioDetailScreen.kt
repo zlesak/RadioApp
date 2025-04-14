@@ -143,7 +143,7 @@ fun RadioDetailScreen(
                             modifier = Modifier.size(200.dp)
                         )
                         Spacer(modifier = Modifier.padding(8.dp))
-                        Text( //TODO FIDDLE WITH TEXTS AND ADD TAGS AND LANGUAGE AND MORE INFO TO DETAIL PAGE
+                        Text(
                             text = radioData.name,
                             fontWeight = FontWeight.Bold,
                             fontSize = 35.sp

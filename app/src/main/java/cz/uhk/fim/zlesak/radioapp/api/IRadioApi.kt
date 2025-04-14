@@ -9,10 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface IRadioApi {
-    @GET("stations")
-    suspend fun getAllRadioStations(@Query("offset") offset : Number ,@Query("limit") limit : Number) : Response<List<RadioStation>>
-
-    @GET("stations/search") //TODO BASED ON WHAT ALL WANTS TO BE IMPLEMENTED
+    @GET("stations/search")
     suspend fun getSearchedRadioStations(
         @Query("offset") offset : Int,
         @Query("limit") limit : Int,

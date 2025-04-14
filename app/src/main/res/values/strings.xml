@@ -32,4 +32,6 @@
     <string name="no_radio_in_near">There are no radio stations near you</string>
     <string name="no_radio_near_help">Try searching for some using search option</string>
     <string name="no_near_icon">No radio station near user icon</string>
+    <string name="no_result">No radio stations found by defined tags</string>
+    <string name="no_result_help">Try another combination of parameters</string>
 </resources>
